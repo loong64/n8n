@@ -24,7 +24,7 @@ RUN set -eux; \
 
 # Setup the Task Runner Launcher
 ARG TARGETARCH
-ARG LAUNCHER_VERSION=1.1.2
+ARG LAUNCHER_VERSION=1.1.3
 COPY docker/images/n8n/n8n-task-runners.json /etc/n8n-task-runners.json
 # Download, verify, then extract the launcher binary
 RUN \
