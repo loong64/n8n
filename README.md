@@ -26,7 +26,7 @@ Or deploy with [Docker](https://docs.n8n.io/hosting/installation/docker/):
 
 ```
 docker volume create n8n_data
-docker run -it --rm --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+docker run -it --rm --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n ghcr.io/loong64/n8nio/n8n
 ```
 
 Access the editor at http://localhost:5678

@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 20 * * *'
 
+env:
+  NODE_OPTIONS: '--max-old-space-size=8192'
+
 jobs:
   publish-to-npm:
     name: Publish to NPM
@@ -55,9 +58,30 @@ jobs:
           repository: n8n-io/n8n
           ref: 'n8n@${{ needs.publish-to-npm.outputs.release }}'
 
-      - name: Setup Build
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
         run: |
-          wget -q -O /tmp/Dockerfile https://github.com/${{ github.repository }}/raw/refs/heads/main/Dockerfile
+          pnpm install --frozen-lockfile
+
+      - name: Build n8n for Docker
+        run: |
+          pnpm build:n8n
+
+          sed -i 's@FROM n8nio@FROM ghcr.io/${{ github.repository_owner }}/n8nio@g' docker/images/n8n/Dockerfile
+          sed -i 's@FROM alpine@FROM ghcr.io/${{ github.repository_owner }}/alpine@g' docker/images/n8n/Dockerfile
+          sed -i 's@arm64@loong64@g' docker/images/n8n/Dockerfile
+          sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile
+          sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -74,21 +98,17 @@ jobs:
 
       - name: Build
         uses: docker/build-push-action@v6
-        env:
-          DOCKER_BUILD_SUMMARY: false
         with:
           context: .
-          file: /tmp/Dockerfile
+          file: ./docker/images/n8n/Dockerfile
           build-args: |
+            NODE_VERSION=22
             N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
             N8N_RELEASE_TYPE=stable
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           platforms: linux/loong64
-          provenance: false
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/n8n:${{ needs.publish-to-npm.outputs.release }}
+            ghcr.io/${{ github.repository_owner }}/n8nio/n8n:${{ needs.publish-to-npm.outputs.release }}
 
   create-github-release:
     name: Create a GitHub Release
@@ -102,11 +122,13 @@ jobs:
       id-token: write
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Create a Release on GitHub
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          commit: ${{ github.sha }}
-          tag: 'n8n@${{ needs.publish-to-npm.outputs.release }}'
-          prerelease: false
-          makeLatest: false
-          body: 'Release n8n@${{ needs.publish-to-npm.outputs.release }}'
+          name: n8n@${{ needs.publish-to-npm.outputs.release }}
+          tag_name: n8n@${{ needs.publish-to-npm.outputs.release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

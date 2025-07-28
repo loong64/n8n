@@ -2,53 +2,49 @@ name: Docker Base Image CI
 
 on:
   workflow_dispatch:
-    inputs:
-      node_version:
-        description: 'Node.js version to build this image with.'
-        type: choice
-        required: true
-        default: '20'
-        options:
-          - '20'
-          - '22'
-          - '24'
+  schedule:
+    - cron: '0 19 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: ['20', '22', '24']
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           repository: n8n-io/n8n
 
       - name: Setup Build
         run: |
           sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/n8n-base/Dockerfile
+          sed -i 's/=[0-9][0-9a-zA-Z._-]*-r[0-9]\+//g' docker/images/n8n-base/Dockerfile
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.3.0
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
-        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
-        env:
-          DOCKER_BUILD_SUMMARY: false
+      - name: Build and push
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/images/n8n-base/Dockerfile
           build-args: |
-            NODE_VERSION=${{github.event.inputs.node_version}}
+            NODE_VERSION=${{ matrix.node_version }}
           platforms: linux/loong64
-          provenance: false
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/n8nio-base:${{ github.event.inputs.node_version }}
+            ghcr.io/${{ github.repository_owner }}/n8nio/base:${{ matrix.node_version }}-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/n8nio/base:${{ matrix.node_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
