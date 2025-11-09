@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: n8n-io/n8n
           ref: 'n8n@${{ needs.publish-to-npm.outputs.release }}'
@@ -64,10 +64,11 @@ jobs:
           run_install: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: |
@@ -78,9 +79,16 @@ jobs:
           pnpm build:n8n
 
           sed -i 's@FROM n8nio@FROM ghcr.io/${{ github.repository_owner }}/n8nio@g' docker/images/n8n/Dockerfile
-          sed -i 's@FROM alpine@FROM ghcr.io/${{ github.repository_owner }}/alpine@g' docker/images/n8n/Dockerfile
-          sed -i 's@arm64@loong64@g' docker/images/n8n/Dockerfile
-          sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile
+          sed -i 's@FROM alpine@FROM ghcr.io/${{ github.repository_owner }}/alpine@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
+
+          sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/runners/Dockerfile
+          sed -i 's@FROM python@FROM ghcr.io/loong64/python@g' docker/images/runners/Dockerfile
+          sed -i '/RUN uv venv/i\ENV UV_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple' docker/images/runners/Dockerfile
+
+          sed -i 's@arm64@loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
+          sed -i 's@aarch64@loongarch64@g' docker/images/runners/Dockerfile
+          sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
+          sed -i 's@https://github.com/astral-sh@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
 
       - name: Set up QEMU
@@ -96,19 +104,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
+      - name: Build and push n8n Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/images/n8n/Dockerfile
           build-args: |
-            NODE_VERSION=22
             N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
             N8N_RELEASE_TYPE=stable
           platforms: linux/loong64
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/n8nio/n8n:${{ needs.publish-to-npm.outputs.release }}
+
+      - name: Build and push task runners Docker image (Alpine)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/images/runners/Dockerfile
+          build-args: |
+            N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
+            N8N_RELEASE_TYPE=stable
+          platforms: linux/loong64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/n8nio/runners:${{ needs.publish-to-npm.outputs.release }}
 
   create-github-release:
     name: Create a GitHub Release
