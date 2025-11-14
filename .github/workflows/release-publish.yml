@@ -90,6 +90,7 @@ jobs:
           sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@https://github.com/astral-sh@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
+          sed -i 's/rm -rf \/tmp\/uv/& \&\& ln -s \/usr\/lib\/libgcc_s.so.1 \/usr\/lib\/libgcc_s-c0abacde.so.1/' docker/images/runners/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
