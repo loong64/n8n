@@ -18,6 +18,7 @@ jobs:
 
       - name: Setup Build
         run: |
+          sed -i -E 's|FROM dhi.io/(.*)-dev|FROM \1|' docker/images/n8n-base/Dockerfile
           sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/n8n-base/Dockerfile
           # sed -i 's/=[0-9][0-9a-zA-Z._-]*-r[0-9]\+//g' docker/images/n8n-base/Dockerfile
 
