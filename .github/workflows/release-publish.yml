@@ -11,7 +11,7 @@ env:
 jobs:
   publish-to-npm:
     name: Publish to NPM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     outputs:
       create: ${{ steps.check-release.outputs.create }}
