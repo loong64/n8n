@@ -112,7 +112,7 @@ jobs:
           build-args: |
             N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
             N8N_RELEASE_TYPE=stable
-            UV_VERSION=0.10.0
+            UV_VERSION=0.10.1
           platforms: linux/loong64
           push: true
           tags: |
@@ -126,6 +126,7 @@ jobs:
           build-args: |
             N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
             N8N_RELEASE_TYPE=stable
+            UV_VERSION=0.10.1
           platforms: linux/loong64
           push: true
           tags: |
