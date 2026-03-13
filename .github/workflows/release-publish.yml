@@ -17,7 +17,7 @@ jobs:
       create: ${{ steps.check-release.outputs.create }}
       release: ${{ steps.get-version.outputs.release }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get Version
         id: get-version
@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: n8n-io/n8n
           ref: 'n8n@${{ needs.publish-to-npm.outputs.release }}'
@@ -66,9 +66,8 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: |
@@ -81,7 +80,7 @@ jobs:
           sed -i 's@FROM n8nio@FROM ghcr.io/${{ github.repository_owner }}/n8nio@g' docker/images/n8n/Dockerfile
           sed -i 's@FROM alpine@FROM ghcr.io/${{ github.repository_owner }}/alpine@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
 
-          sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/runners/Dockerfile
+          sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@FROM python@FROM ghcr.io/loong64/python@g' docker/images/runners/Dockerfile
           sed -i '/RUN uv venv/i\ENV UV_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple' docker/images/runners/Dockerfile
 
@@ -89,7 +88,7 @@ jobs:
           sed -i 's@aarch64@loongarch64@g' docker/images/runners/Dockerfile
           sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@https://github.com/astral-sh@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
+          sed -i 's@npm rebuild sqlite3 isolated-vm@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download isolated-vm --isolated-vm_binary_host=https://github.com/loong64/isolated-vm/releases/download@g' docker/images/n8n/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -145,7 +144,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create a Release on GitHub
         uses: softprops/action-gh-release@v2

@@ -12,7 +12,7 @@ jobs:
       matrix:
         node_version: ['22', '24.13.1', '25']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: n8n-io/n8n
 
