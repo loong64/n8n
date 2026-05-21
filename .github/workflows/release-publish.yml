@@ -49,7 +49,7 @@ jobs:
     needs: [publish-to-npm]
     runs-on: ubuntu-latest
     if: needs.publish-to-npm.outputs.create == '1'
-    timeout-minutes: 15
+    # timeout-minutes: 15
 
     steps:
       - name: Checkout
