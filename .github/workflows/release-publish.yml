@@ -88,7 +88,7 @@ jobs:
           sed -i 's@aarch64@loongarch64@g' docker/images/runners/Dockerfile
           sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
           sed -i 's@https://github.com/astral-sh@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@npm rebuild sqlite3 isolated-vm@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download isolated-vm --isolated-vm_binary_host=https://github.com/loong64/isolated-vm/releases/download@g' docker/images/n8n/Dockerfile
+          sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
           sed -i 's@npm rebuild isolated-vm@npm rebuild isolated-vm --isolated-vm_binary_host=https://github.com/loong64/isolated-vm/releases/download@g' docker/images/runners/Dockerfile
 
       - name: Set up QEMU
