@@ -71,25 +71,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm install --frozen-lockfile
+          wget -qO - https://github.com/loong64/n8n/raw/refs/heads/main/patch_loong64.patch | patch -p1
+          pnpm install --no-frozen-lockfile
 
       - name: Build n8n for Docker
         run: |
           pnpm build:n8n
-
-          sed -i 's@FROM n8nio@FROM ghcr.io/${{ github.repository_owner }}/n8nio@g' docker/images/n8n/Dockerfile
-          sed -i 's@FROM alpine@FROM ghcr.io/${{ github.repository_owner }}/alpine@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-
-          sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@FROM python@FROM ghcr.io/loong64/python@g' docker/images/runners/Dockerfile
-          sed -i '/RUN uv venv/i\ENV UV_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple' docker/images/runners/Dockerfile
-
-          sed -i 's@arm64@loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@aarch64@loongarch64@g' docker/images/runners/Dockerfile
-          sed -i 's@https://github.com/n8n-io@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@https://github.com/astral-sh@https://github.com/loong64@g' docker/images/n8n/Dockerfile docker/images/runners/Dockerfile
-          sed -i 's@npm rebuild sqlite3@npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download@g' docker/images/n8n/Dockerfile
-          sed -i 's@npm rebuild isolated-vm@npm rebuild isolated-vm --isolated-vm_binary_host=https://github.com/loong64/isolated-vm/releases/download@g' docker/images/runners/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -128,7 +115,6 @@ jobs:
           build-args: |
             N8N_VERSION=${{ needs.publish-to-npm.outputs.release }}
             N8N_RELEASE_TYPE=stable
-            UV_VERSION=0.10.1
           platforms: linux/loong64
           push: true
           tags: |
