@@ -28,7 +28,7 @@ index 1491473b..ff034c2a 100644
        org.opencontainers.image.url="https://n8n.io" \
        org.opencontainers.image.version=${N8N_VERSION}
 diff --git a/docker/images/runners/Dockerfile b/docker/images/runners/Dockerfile
-index 40fead6a..1c314b71 100644
+index 40fead6a..39b57a2d 100644
 --- a/docker/images/runners/Dockerfile
 +++ b/docker/images/runners/Dockerfile
 @@ -4,7 +4,7 @@ ARG PYTHON_VERSION=3.13
@@ -40,7 +40,18 @@ index 40fead6a..1c314b71 100644
  COPY ./dist/task-runner-javascript /app/task-runner-javascript
  
  WORKDIR /app/task-runner-javascript
-@@ -40,19 +40,19 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ && \
+@@ -32,27 +32,27 @@ RUN rm -f node_modules/.modules.yaml && \
+ 
+ # Rebuild isolated-vm for the container platform. Install build tools as
+ # fallback in case prebuild-install cannot find a prebuilt binary.
+-RUN apk add --no-cache --virtual .build-deps python3 make g++ && \
+-    npm rebuild isolated-vm && \
+-    apk del .build-deps
++# RUN apk add --no-cache --virtual .build-deps python3 make g++ && \
++    # npm rebuild isolated-vm && \
++    # apk del .build-deps
+ 
+ # ==============================================================================
  # STAGE 2: Python runner build (@n8n/task-runner-python) with uv
  # Produces a relocatable venv tied to the python version used
  # ==============================================================================
