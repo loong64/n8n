@@ -71,12 +71,15 @@ jobs:
 
       - name: Install dependencies
         run: |
+          mkdir -p /tmp/isolated-vm
+          wget -qO - https://registry.npmjs.org/@loong64/isolated-vm/-/isolated-vm-6.1.2.tgz | tar xz --strip-components=1 -C /tmp/isolated-vm
           wget -qO - https://github.com/loong64/n8n/raw/refs/heads/main/patch_loong64.patch | patch -p1
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
 
       - name: Build n8n for Docker
         run: |
           pnpm build:n8n
+          mv /tmp/isolated-vm/prebuilds/linux-loong64 dist/task-runner-javascript/node_modules/isolated-vm/prebuilds/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

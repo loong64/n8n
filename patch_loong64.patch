@@ -130,14 +130,3 @@ index 40fead6a..39b57a2d 100644
 +      org.opencontainers.image.source="https://github.com/loong64/n8n" \
        org.opencontainers.image.url="https://n8n.io" \
        org.opencontainers.image.version="${N8N_VERSION}"
-diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
-index dc772df7..9c75af32 100644
---- a/pnpm-workspace.yaml
-+++ b/pnpm-workspace.yaml
-@@ -170,3 +170,6 @@ minimumReleaseAge: 4320
- minimumReleaseAgeExclude:
-   - '@n8n/*'
-   - '@n8n_io/*'
-+
-+overrides:
-+  "isolated-vm": "npm:@loong64/isolated-vm@latest"
