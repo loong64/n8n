@@ -72,7 +72,8 @@ jobs:
       - name: Install dependencies
         run: |
           mkdir -p /tmp/isolated-vm
-          wget -qO - https://registry.npmjs.org/@loong64/isolated-vm/-/isolated-vm-6.1.2.tgz | tar xz --strip-components=1 -C /tmp/isolated-vm
+          ISOLATED_VM_VERSION=$(yq '.catalog.isolated-vm' pnpm-workspace.yaml | sed 's/\^//')
+          wget -qO - https://registry.npmjs.org/@loong64/isolated-vm/-/isolated-vm-${ISOLATED_VM_VERSION}.tgz | tar xz --strip-components=1 -C /tmp/isolated-vm
           wget -qO - https://github.com/loong64/n8n/raw/refs/heads/main/patch_loong64.patch | patch -p1
           pnpm install --frozen-lockfile
 
