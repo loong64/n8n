@@ -1,13 +1,8 @@
 diff --git a/docker/images/n8n/Dockerfile b/docker/images/n8n/Dockerfile
-index 4b6a018b..ff034c2a 100644
+index b8bd1eeffe..e2bdcf29a4 100644
 --- a/docker/images/n8n/Dockerfile
 +++ b/docker/images/n8n/Dockerfile
-@@ -2,22 +2,13 @@ ARG NODE_VERSION=24.15.0
- ARG N8N_VERSION=snapshot
- 
- # Builder stage exists because the runtime base image has no toolchain.
--FROM node:${NODE_VERSION}-alpine3.22 AS builder
-+FROM ghcr.io/loong64/node:${NODE_VERSION}-alpine3.22 AS builder
+@@ -8,16 +8,7 @@ FROM node:24.15.0-alpine3.22@sha256:b689d4005875ae167178471a7a622ec2909459a3bbb3
  COPY ./compiled /usr/local/lib/node_modules/n8n
  RUN apk add --no-cache python3 make g++ && \
      cd /usr/local/lib/node_modules/n8n && \
@@ -21,15 +16,11 @@ index 4b6a018b..ff034c2a 100644
 -    rm -rf node_modules/isolated-vm/prebuilds && \
 -    cd node_modules/isolated-vm && \
 -    npx --yes node-gyp rebuild --release -j max
--
--FROM n8nio/base:${NODE_VERSION}
 +    npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download
-+
-+FROM ghcr.io/loong64/n8nio/base:${NODE_VERSION}
  
- ARG N8N_VERSION
- ARG N8N_RELEASE_TYPE=dev
-@@ -41,6 +32,6 @@ ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+ # Pinned to multi-arch index digest (linux/amd64 + linux/arm64) for reproducible builds.
+ # n8nio/base is republished by a separate workflow (docker/images/n8n-base) on every
+@@ -48,6 +39,6 @@ ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
  
  LABEL org.opencontainers.image.title="n8n" \
        org.opencontainers.image.description="Workflow Automation Tool" \
@@ -37,27 +28,10 @@ index 4b6a018b..ff034c2a 100644
 +      org.opencontainers.image.source="https://github.com/loong64/n8n" \
        org.opencontainers.image.url="https://n8n.io" \
        org.opencontainers.image.version=${N8N_VERSION}
-index 73ecae4d..2a1c51a4 100644
+diff --git a/docker/images/runners/Dockerfile b/docker/images/runners/Dockerfile
+index 73ecae4d1e..3390850ef1 100644
 --- a/docker/images/runners/Dockerfile
 +++ b/docker/images/runners/Dockerfile
-@@ -4,7 +4,7 @@ ARG PYTHON_VERSION=3.13
- # ==============================================================================
- # STAGE 1: JavaScript runner (@n8n/task-runner) artifact from CI
- # ==============================================================================
--FROM node:${NODE_VERSION}-alpine3.22 AS javascript-runner-builder
-+FROM ghcr.io/loong64/node:${NODE_VERSION}-alpine3.22 AS javascript-runner-builder
- COPY ./dist/task-runner-javascript /app/task-runner-javascript
- 
- WORKDIR /app/task-runner-javascript
-@@ -34,7 +34,7 @@ RUN rm -f node_modules/.modules.yaml && \
- # STAGE 2: Python runner build (@n8n/task-runner-python) with uv
- # Produces a relocatable venv tied to the python version used
- # ==============================================================================
--FROM python:${PYTHON_VERSION}-alpine AS python-runner-builder
-+FROM ghcr.io/loong64/python:${PYTHON_VERSION}-alpine AS python-runner-builder
- ARG TARGETPLATFORM
- ARG UV_VERSION=0.8.14
- 
 @@ -42,11 +42,12 @@ RUN set -e; \
    case "$TARGETPLATFORM" in \
      "linux/amd64") UV_ARCH="x86_64-unknown-linux-musl" ;; \
@@ -81,15 +55,6 @@ index 73ecae4d..2a1c51a4 100644
  RUN uv venv
  RUN uv sync \
  			--frozen \
-@@ -80,7 +82,7 @@ RUN uv pip install . && rm -rf /app/task-runner-python/src
- # ==============================================================================
- # STAGE 3: Task Runner Launcher download
- # ==============================================================================
--FROM alpine:3.22 AS launcher-downloader
-+FROM ghcr.io/loong64/alpine:3.22 AS launcher-downloader
- ARG TARGETPLATFORM
- ARG LAUNCHER_VERSION=1.4.6
- 
 @@ -88,11 +90,12 @@ RUN set -e; \
      case "$TARGETPLATFORM" in \
          "linux/amd64") ARCH_NAME="amd64" ;; \
@@ -105,21 +70,6 @@ index 73ecae4d..2a1c51a4 100644
      echo "$(cat task-runner-launcher-${LAUNCHER_VERSION}-linux-${ARCH_NAME}.tar.gz.sha256) task-runner-launcher-${LAUNCHER_VERSION}-linux-${ARCH_NAME}.tar.gz" > checksum.sha256; \
      sha256sum -c checksum.sha256; \
      mkdir -p /launcher-bin; \
-@@ -102,12 +105,12 @@ RUN set -e; \
- # ==============================================================================
- # STAGE 4: Node alpine base for JS task runner
- # ==============================================================================
--FROM node:${NODE_VERSION}-alpine3.22 AS node-alpine
-+FROM ghcr.io/loong64/node:${NODE_VERSION}-alpine3.22 AS node-alpine
- 
- # ==============================================================================
- # STAGE 5: Runtime
- # ==============================================================================
--FROM python:${PYTHON_VERSION}-alpine AS runtime
-+FROM ghcr.io/loong64/python:${PYTHON_VERSION}-alpine AS runtime
- ARG N8N_VERSION=snapshot
- ARG N8N_RELEASE_TYPE=dev
- 
 @@ -151,6 +154,6 @@ CMD ["javascript", "python"]
  
  LABEL org.opencontainers.image.title="n8n task runners" \
