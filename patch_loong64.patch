@@ -1,22 +1,23 @@
 diff --git a/docker/images/n8n/Dockerfile b/docker/images/n8n/Dockerfile
-index b8bd1eeffe..e2bdcf29a4 100644
+index 55c7a45a16..f1c7ebd892 100644
 --- a/docker/images/n8n/Dockerfile
 +++ b/docker/images/n8n/Dockerfile
-@@ -8,16 +8,7 @@ FROM node:24.15.0-alpine3.22@sha256:b689d4005875ae167178471a7a622ec2909459a3bbb3
+@@ -9,7 +9,7 @@ FROM node:24.16.0-alpine3.22@sha256:191c9f0080fcbbc6547a85dc0ff7988072214a355aab
  COPY ./compiled /usr/local/lib/node_modules/n8n
  RUN apk add --no-cache python3 make g++ && \
      cd /usr/local/lib/node_modules/n8n && \
 -    npm rebuild sqlite3 && \
--    # Rebuild isolated-vm from source. node-gyp-build's musl detection relies
--    # on /etc/alpine-release which DHI Alpine omits, so the bundled prebuilt
--    # loader picks the glibc binary and segfaults in musl pthread paths.
--    # Removing prebuilds and invoking node-gyp directly avoids npm rebuild's
--    # double-build behavior (built-in node-gyp + install-script node-gyp)
--    # which races on dep-file state.
++    npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download
+     # Rebuild isolated-vm from source. node-gyp-build's musl detection relies
+     # on /etc/alpine-release which DHI Alpine omits, so the bundled prebuilt
+     # loader picks the glibc binary and segfaults in musl pthread paths.
+@@ -19,9 +19,6 @@ RUN apk add --no-cache python3 make g++ && \
+     # Use npm's bundled node-gyp rather than `npx node-gyp` so the toolchain
+     # version is fixed by the pinned image digest instead of being fetched
+     # from the registry at build time.
 -    rm -rf node_modules/isolated-vm/prebuilds && \
 -    cd node_modules/isolated-vm && \
--    npx --yes node-gyp rebuild --release -j max
-+    npm rebuild sqlite3 --sqlite3_binary_host=https://github.com/loong64/node-sqlite3/releases/download
+-    node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --release -j max
  
  # Pinned to multi-arch index digest (linux/amd64 + linux/arm64) for reproducible builds.
  # n8nio/base is republished by a separate workflow (docker/images/n8n-base) on every
@@ -29,7 +30,7 @@ index b8bd1eeffe..e2bdcf29a4 100644
        org.opencontainers.image.url="https://n8n.io" \
        org.opencontainers.image.version=${N8N_VERSION}
 diff --git a/docker/images/runners/Dockerfile b/docker/images/runners/Dockerfile
-index 73ecae4d1e..3390850ef1 100644
+index c1dfadfc9b..a777aebad2 100644
 --- a/docker/images/runners/Dockerfile
 +++ b/docker/images/runners/Dockerfile
 @@ -42,11 +42,12 @@ RUN set -e; \
@@ -45,7 +46,7 @@ index 73ecae4d1e..3390850ef1 100644
 +  wget -q "https://github.com/loong64/uv/releases/download/${UV_VERSION}/uv-${UV_ARCH}.tar.gz"; \
 +  wget -q "https://github.com/loong64/uv/releases/download/${UV_VERSION}/uv-${UV_ARCH}.tar.gz.sha256"; \
    sha256sum -c "uv-${UV_ARCH}.tar.gz.sha256"; \
- 	tar -xzf "uv-${UV_ARCH}.tar.gz"; \
+        tar -xzf "uv-${UV_ARCH}.tar.gz"; \
    install -m 0755 "uv-${UV_ARCH}/uv" /usr/local/bin/uv; \
 @@ -59,6 +60,7 @@ COPY packages/@n8n/task-runner-python/pyproject.toml \
       packages/@n8n/task-runner-python/.python-version** \
@@ -54,7 +55,7 @@ index 73ecae4d1e..3390850ef1 100644
 +ENV UV_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple
  RUN uv venv
  RUN uv sync \
- 			--frozen \
+                        --frozen \
 @@ -88,11 +90,12 @@ RUN set -e; \
      case "$TARGETPLATFORM" in \
          "linux/amd64") ARCH_NAME="amd64" ;; \
