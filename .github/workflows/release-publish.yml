@@ -112,7 +112,7 @@ jobs:
       - name: Build n8n for Docker
         run: |
           pnpm build:n8n
-          mv /tmp/isolated-vm/prebuilds/linux-loong64 dist/task-runner-javascript/node_modules/isolated-vm/prebuilds/
+          mv /tmp/isolated-vm/prebuilds/linux-loong64 dist/task-runner-javascript/node_modules/.pnpm/node_modules/isolated-vm/prebuilds/
 
       - name: Build and push n8n Docker image
         uses: docker/build-push-action@v7
