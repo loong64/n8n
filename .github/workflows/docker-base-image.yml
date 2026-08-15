@@ -11,17 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node_version: ['22', '24.18.0']
+        node_version: ['22', '24.18.1', '26.5.1']
     steps:
       - uses: actions/checkout@v6
         with:
           repository: n8n-io/n8n
-
-      - name: Setup Build
-        run: |
-          sed -i -E 's|FROM dhi.io/(.*)-dev@sha256:.*|FROM \1|' docker/images/n8n-base/Dockerfile
-          sed -i 's@FROM node@FROM ghcr.io/loong64/node@g' docker/images/n8n-base/Dockerfile
-          # sed -i 's/=[0-9][0-9a-zA-Z._-]*-r[0-9]\+//g' docker/images/n8n-base/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -42,7 +36,7 @@ jobs:
           context: .
           file: ./docker/images/n8n-base/Dockerfile
           build-args: |
-            NODE_VERSION=${{ matrix.node_version }}
+            DHI_REF=ghcr.io/loong64/node:${{ matrix.node_version }}
           platforms: linux/loong64
           push: true
           tags: |
