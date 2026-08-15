@@ -36,7 +36,7 @@ jobs:
           context: .
           file: ./docker/images/n8n-base/Dockerfile
           build-args: |
-            DHI_REF=ghcr.io/loong64/node:${{ matrix.node_version }}
+            DHI_REF=ghcr.io/loong64/node:${{ matrix.node_version }}-alpine3.24
           platforms: linux/loong64
           push: true
           tags: |
